@@ -9,8 +9,11 @@ import lombok.Setter;
 @Setter
 public class ImageDto {
 
+    private long imageId;
     private String imageName;
     private String originalName;
     private String imageUrl;
+    private Long productId;
+    private Long userId;
 
 }

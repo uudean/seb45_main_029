@@ -25,7 +25,11 @@ public enum ExceptionCode {
 
     PRODUCT_NOT_FOUND(404, "Product Not found"),
 
-    NOT_ENOUGH_POINTS(404,"Not Enough Points");
+    NOT_ENOUGH_POINTS(404, "Not Enough Points"),
+
+    IMAGE_NOT_FOUND(404, "Image Not found"),
+
+    IMAGE_EXISTS(409,"Image exists");
 
     @Getter
     private int status;

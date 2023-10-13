@@ -32,7 +32,7 @@ public class Image extends Auditable {
     @JoinColumn(name = "product_id")
     private Product product;
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL,orphanRemoval = true)
     @JoinColumn(name = "user_id")
     private User user;
 
