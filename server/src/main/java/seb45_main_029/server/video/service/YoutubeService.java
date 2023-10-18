@@ -90,7 +90,7 @@ public class YoutubeService {
 //                        조회한 동영상 정보 데이터베이스 저장
                             Video savedVideo = videoRepository.findByTitle(info.getTitle());
 //                        중복 방지
-                            if (savedVideo == null || savedVideo.getTitle()==null || savedVideo.getTitle().isEmpty()) {
+                            if (savedVideo == null || savedVideo.getTitle() == null || savedVideo.getTitle().isEmpty()) {
 
                                 Video video = new Video(info.getUrl(), info.getTitle(), info.getThumbnailUrl(), info.getDescription(), painArea, job);
                                 videoRepository.save(video);
@@ -121,4 +121,60 @@ public class YoutubeService {
         return savedVideoList;
     }
 
+    public List<YoutubeVideoInfo> youtubeSearchBatch(String query, long maxResult) {
+
+        log.info("===== 유튜브 API 를 통해 관련 동영상 검색중... =====");
+        YouTube youtubeService = getService();
+
+//        리스트에 유튜브 비디오 정보 저장
+        List<YoutubeVideoInfo> videoInfo = new ArrayList<>();
+
+        try {
+            if (youTube != null) {
+//                쿼리 파라미터 설정
+                YouTube.Search.List search = youTube.search().list(("snippet,id"));
+                search.setKey("AIzaSyCde6Qb4XhLvkXJ6tWhcPWj_css263v9yo");
+                search.setQ(query);
+                search.setMaxResults(maxResult);
+                search.setTopicId("/m/0kt51");
+                search.setType(YOUTUBE_SEARCH_TYPE);
+
+                SearchListResponse searchResponse = search.execute();
+                List<SearchResult> searchResultList = searchResponse.getItems();
+
+                if (searchResultList != null && !searchResultList.isEmpty()) {
+
+                    for (SearchResult result : searchResultList) {
+
+                        YoutubeVideoInfo info = new YoutubeVideoInfo(
+
+                                GOOGLE_YOUTUBE_URL + result.getId().getVideoId(),
+                                result.getSnippet().getTitle(),
+                                result.getSnippet().getThumbnails().getDefault().getUrl(),
+                                result.getSnippet().getDescription());
+
+                        videoInfo.add(info);
+
+                    }
+
+                } else {
+                    log.info("===== 검색 결과가 없습니다. =====");
+                }
+
+            } else {
+                log.warn("YouTube API not initialized correctly!");
+            }
+
+        } catch (GoogleJsonResponseException e) {
+            log.warn(e.getDetails().getCode() + " : " + e.getDetails().getMessage());
+
+        } catch (IOException e) {
+            log.warn(e.getCause() + " : " + e.getMessage());
+        }
+
+        log.info("===== 검색 완료 =====");
+
+//        저장된 동영상 만 response 로 리턴
+        return videoInfo;
+    }
 }
