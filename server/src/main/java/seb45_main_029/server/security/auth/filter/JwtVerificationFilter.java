@@ -3,13 +3,19 @@ package seb45_main_029.server.security.auth.filter;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.security.SignatureException;
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
+import seb45_main_029.server.exception.BusinessLogicException;
+import seb45_main_029.server.exception.ExceptionCode;
 import seb45_main_029.server.security.auth.jwt.JwtTokenizer;
 import seb45_main_029.server.security.auth.utils.CustomAuthorityUtils;
+import seb45_main_029.server.user.entity.User;
+import seb45_main_029.server.user.service.UserService;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -31,8 +37,10 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
 
     private final JwtTokenizer jwtTokenizer;
     private final CustomAuthorityUtils authorityUtils;
+    private final RedisTemplate<String, String> redisTemplate;
 
     @Override
+
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
@@ -57,7 +65,7 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
 
-        // 요청 헤더에 Aythorization 헤더가 있는지 확인하하고 값이 Bearer 로 시작하는지 확인
+        // 요청 헤더에 Authorization 헤더가 있는지 확인하하고 값이 Bearer 로 시작하는지 확인
         String authorization = request.getHeader("Authorization");
         return authorization == null || !authorization.startsWith("Bearer");
     }
@@ -65,26 +73,30 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
     /*
      * JWT 토큰 검증, 권한 정보 추출
      */
-    private Map<String, Object> verifyJws(HttpServletRequest request) {
+    private Map<String, Object> verifyJws(HttpServletRequest request) throws Exception {
 
         // 헤더 Authorization 부분 불러와서 "Bearer "부분 지우기
         String jws = request.getHeader("Authorization").replace("Bearer ", "");
+
         String base64EncodedSecretKey = jwtTokenizer.encodeBase64SecretKey(jwtTokenizer.getSecretKey());
 
-        // 헤더에서 가지고 온 토큰이랑 계정의 인코딩된 토큰 동일한지 검증 후 추출하고 반환
         Map<String, Object> claims = jwtTokenizer.getClaims(jws, base64EncodedSecretKey).getBody();
+        String email = claims.get("username").toString();
+        String accessToken = redisTemplate.opsForValue().get("AccessToken : " + email);
 
-        return claims;
+//        redis 에 저장되어있는 액세스토큰과 일치하면 반환
+        if (accessToken.equals(jws)) {
+            return claims;
+        } else throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED_USER);
     }
 
     private void setAuthenticationToContext(Map<String, Object> claims) {
 
         // 사용자명, 역할 정보를 추출
-        // ⭐ 여기의 username은 토큰의 클레임 중 "username"입니다. userName 시 오류납니다!! 수정 금지!!
         String username = (String) claims.get("username");
 
         // 사용자명과 역할 정보 추출
-        List<GrantedAuthority> authorities = authorityUtils.createAuthorities((List<String>)claims.get("roles"));
+        List<GrantedAuthority> authorities = authorityUtils.createAuthorities((List<String>) claims.get("roles"));
 
         Authentication authentication = new UsernamePasswordAuthenticationToken(username, null, authorities);
         SecurityContextHolder.getContext().setAuthentication(authentication);

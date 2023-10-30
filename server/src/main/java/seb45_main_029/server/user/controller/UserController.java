@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import seb45_main_029.server.security.auth.dto.UserLoginDto;
 import seb45_main_029.server.user.dto.UserPatchDto;
 import seb45_main_029.server.user.dto.UserPostDto;
 import seb45_main_029.server.user.dto.UserResponseDto;
@@ -29,9 +30,9 @@ import java.net.URI;
 @AllArgsConstructor
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UserController {
+
     private final UserService userService;
     private final UserMapper mapper;
-
 
 
     // 회원가입
@@ -52,16 +53,6 @@ public class UserController {
         }
     }
 
-    //로그아웃
-
-    @PostMapping("/logout")
-    public ResponseEntity logout(HttpServletRequest request){
-        userService.logout(request);
-        return ResponseEntity.ok("로그아웃 되었습니다.");
-    }
-
-
-
     //회원정보수정
     @PatchMapping("/mypage/edit/{user-id}")
     public ResponseEntity patchUser(@PathVariable("user-id") @Positive Long userId,
@@ -73,8 +64,7 @@ public class UserController {
         UserResponseDto response = mapper.userToUserResponseDto(user);
 
 
-
-        return  ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
     }
 
     //회원 마이페이지
@@ -86,6 +76,7 @@ public class UserController {
 
         return ResponseEntity.ok(response);
     }
+
     //회원삭제
     @DeleteMapping("/{user-id}")
     public ResponseEntity deleteUser(@PathVariable("user-id") @Positive Long userId) {

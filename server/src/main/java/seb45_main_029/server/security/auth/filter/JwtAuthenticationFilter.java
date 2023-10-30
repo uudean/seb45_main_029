@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /*
  * userName & Password 기반의 인증처리를 위해
@@ -36,6 +38,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     // 클라이언트가 성공할 경우 JWT 생성
     private final JwtTokenizer jwtTokenizer;
+    private final RedisTemplate<String,String> redisTemplate;
 
     /*
      * 메서드 내부에서 인증을 시도하는 로직 구현
@@ -80,15 +83,20 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String accessToken = delegateAccessToken(user);
         String refreshToken = delegateRefreshToken(user);
 
-        // header에 Access Token 추가
+        //        인증 성공시 redis에 토큰 저장
+        redisTemplate.opsForValue().set("AccessToken : "+user.getEmail(),accessToken,1L,TimeUnit.HOURS);
+        redisTemplate.opsForValue().set("RefreshToken : "+user.getEmail(),refreshToken,14L, TimeUnit.DAYS);
+
+        // header에 AccessToken 전달
         response.setHeader("Authorization", "Bearer " + accessToken);
 
-        // header에 Refresh Token 추가
-        response.setHeader("Refresh", refreshToken);
+        // header에 RefreshToken 전달
+        response.setHeader("RefreshToken", refreshToken);
 
-        UserLoginResponseDto userLoginResponseDto = new UserLoginResponseDto(user.getUserId(), user.getEmail(), accessToken);
+        UserLoginResponseDto userLoginResponseDto = new UserLoginResponseDto(user.getUserId(), user.getEmail(), "Bearer "+accessToken);
         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.getWriter().write(gson.toJson(userLoginResponseDto));
+
 
         this.getSuccessHandler().onAuthenticationSuccess(request, response, authResult);
     }
@@ -96,7 +104,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
     /*
      * Access Token 생성 메서드
      */
-    private String delegateAccessToken(User user) {
+   private String delegateAccessToken(User user) {
 
         Map<String, Object> claims = new HashMap<>();
 
@@ -119,12 +127,18 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
      */
     private String delegateRefreshToken(User user) {
 
+        Map<String, Object> claims = new HashMap<>();
+
+        claims.put("username", user.getEmail());
+        claims.put("roles", user.getRoles());
+        claims.put("userId", user.getUserId());
+
         String subject = user.getEmail();
 
         Date expiration = jwtTokenizer.getTokenExpiration(jwtTokenizer.getRefreshTokenExpirationMinutes());
         String base64EncodedSecretKey = jwtTokenizer.encodeBase64SecretKey(jwtTokenizer.getSecretKey());
 
-        String refreshToken = jwtTokenizer.generateRefreshToken(subject, expiration, base64EncodedSecretKey);
+        String refreshToken = jwtTokenizer.generateRefreshToken(claims,subject, expiration, base64EncodedSecretKey);
 
         return refreshToken;
     }

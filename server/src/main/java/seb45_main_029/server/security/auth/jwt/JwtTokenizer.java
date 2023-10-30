@@ -7,7 +7,10 @@ import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.io.Encoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
@@ -15,7 +18,9 @@ import java.security.Key;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
+@RequiredArgsConstructor
 @Component
 public class JwtTokenizer {
 
@@ -42,31 +47,16 @@ public class JwtTokenizer {
     }
 
     /**
-     *
      * 인증된 사용자에게 JWT 최초 발급
      * JWT 생성 메서드
-     *  @param claims : (인증된) 사용자 정보
-     *  @param subject : 제목 추가
-     * issuedAt : 발행일자 설정
-     *  @param expiration : 만려 일시
-     * signwith : 서명을 위한 Key 객체 설정
-     * compact : JWT 생성 및 직렬화
+     *
+     * @param claims     : (인증된) 사용자 정보
+     * @param subject    : 제목 추가
+     *                   issuedAt : 발행일자 설정
+     * @param expiration : 만려 일시
+     *                   signwith : 서명을 위한 Key 객체 설정
+     *                   compact : JWT 생성 및 직렬화
      */
-//    public String generateAccessToken(Map<String, Object> claims,
-//                                      Long subject,
-//                                      Date expiration,
-//                                      String base64EncodedSecretKey) {
-//
-//        Key key = getKeyFromBase64EncodedKey(base64EncodedSecretKey);
-//
-//        return Jwts.builder()
-//                .setClaims(claims)
-//                .setSubject(String.valueOf(subject))
-//                .setIssuedAt(Calendar.getInstance().getTime())
-//                .setExpiration(expiration)
-//                .signWith(key)
-//                .compact();
-//    }
 
     public String generateAccessToken(Map<String, Object> claims,
                                       String subject,
@@ -92,15 +82,21 @@ public class JwtTokenizer {
      * @param base64EncodedSecretKey
      * @return
      */
-    public String generateRefreshToken(String subject, Date expiration, String base64EncodedSecretKey) {
+    public String generateRefreshToken(Map<String, Object> claims,
+                                       String subject,
+                                       Date expiration,
+                                       String base64EncodedSecretKey) {
         Key key = getKeyFromBase64EncodedKey(base64EncodedSecretKey);
 
-        return Jwts.builder()
+        String refreshToken = Jwts.builder()
+                .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(Calendar.getInstance().getTime())
                 .setExpiration(expiration)
                 .signWith(key)
                 .compact();
+
+        return refreshToken;
     }
 
     public Jws<Claims> getClaims(String jws, String base64EncodedSecretKey) {
@@ -109,7 +105,8 @@ public class JwtTokenizer {
 
         Jws<Claims> claims = Jwts.parserBuilder()
                 .setSigningKey(key)
-                .build().parseClaimsJws(jws);
+                .build()
+                .parseClaimsJws(jws);
 
         return claims;
     }
@@ -130,7 +127,8 @@ public class JwtTokenizer {
     }
 
     /**
-     *  토큰 유효기간
+     * 토큰 유효기간
+     *
      * @param expirationMinutes
      * @return
      */
