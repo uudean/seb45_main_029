@@ -7,6 +7,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class YoutubeVideoInfo {
+    private String query;
     private String url;
     private String title;
     private String thumbnailUrl;
@@ -19,4 +20,11 @@ public class YoutubeVideoInfo {
         this.description = description;
     }
 
+    public YoutubeVideoInfo(String query, String url, String title, String thumbnailUrl, String description) {
+        this.query = query;
+        this.url = url;
+        this.title = title;
+        this.thumbnailUrl = thumbnailUrl;
+        this.description = description;
+    }
 }

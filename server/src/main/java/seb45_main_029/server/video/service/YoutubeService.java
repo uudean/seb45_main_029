@@ -63,7 +63,7 @@ public class YoutubeService {
             if (youTube != null) {
 //                쿼리 파라미터 설정
                 YouTube.Search.List search = youTube.search().list(("snippet,id"));
-                search.setKey("AIzaSyCde6Qb4XhLvkXJ6tWhcPWj_css263v9yo");
+                search.setKey("AIzaSyCUvPSJtrLBO3R-qaXLgEsx3s8TvraoCpA");
                 search.setQ(query);
                 search.setMaxResults(maxResult);
                 search.setTopicId("/m/0kt51");
@@ -133,7 +133,7 @@ public class YoutubeService {
             if (youTube != null) {
 //                쿼리 파라미터 설정
                 YouTube.Search.List search = youTube.search().list(("snippet,id"));
-                search.setKey("AIzaSyCde6Qb4XhLvkXJ6tWhcPWj_css263v9yo");
+                search.setKey("AIzaSyCUvPSJtrLBO3R-qaXLgEsx3s8TvraoCpA");
                 search.setQ(query);
                 search.setMaxResults(maxResult);
                 search.setTopicId("/m/0kt51");
@@ -147,11 +147,12 @@ public class YoutubeService {
                     for (SearchResult result : searchResultList) {
 
                         YoutubeVideoInfo info = new YoutubeVideoInfo(
-
+                                query,
                                 GOOGLE_YOUTUBE_URL + result.getId().getVideoId(),
                                 result.getSnippet().getTitle(),
                                 result.getSnippet().getThumbnails().getDefault().getUrl(),
                                 result.getSnippet().getDescription());
+                        info.setQuery(query);
 
                         videoInfo.add(info);
 
