@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public enum Job {
-// job type 나누기 애매한 직업들 분류 회의해서 다시 정해야함
+
     경영_사무("사무직"),
     연구_기술("사무직"),
     경찰_군인_소방("현장직"),
