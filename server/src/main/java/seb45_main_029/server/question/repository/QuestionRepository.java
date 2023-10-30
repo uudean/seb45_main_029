@@ -17,8 +17,9 @@ public interface QuestionRepository extends JpaRepository<Question,Long> {
     @Query("SELECT  q from Question q where q.isDeleted = false and q.questionId = :questionId")
     Optional<Question> findByQuestionId(@Param("questionId") long questionId);
 
-
+    @Query("SELECT q from Question  q where q.status = true")
     Page<Question> findByStatusIsTrue(PageRequest pageRequest);
 
+    @Query("SELECT q from Question  q where q.status = false ")
     Page<Question> findByStatusIsFalse(PageRequest pageRequest);
 }
