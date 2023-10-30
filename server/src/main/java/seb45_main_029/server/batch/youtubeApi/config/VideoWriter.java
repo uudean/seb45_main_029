@@ -27,5 +27,6 @@ public class VideoWriter implements ItemWriter<List<Video>> {
         for (List<Video> video : videos) {
             videoRepository.saveAll(video);
         }
+
     }
 }

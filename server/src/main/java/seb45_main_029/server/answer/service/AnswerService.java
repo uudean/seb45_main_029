@@ -60,7 +60,7 @@ public class AnswerService {
 
     public Page<Answer> getAnswers(int page, int size, long boardId) {
 
-        return answerRepository.findByQuestionQuestionId(PageRequest.of(page, size), boardId);
+        return answerRepository.getAnswer(PageRequest.of(page, size), boardId);
     }
 
     public void deleteAnswer(long questionId) {
