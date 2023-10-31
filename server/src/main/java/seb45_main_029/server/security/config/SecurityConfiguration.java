@@ -18,6 +18,7 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import seb45_main_029.server.redis.common.RedisUtil;
 import seb45_main_029.server.security.auth.filter.JwtAuthenticationFilter;
 import seb45_main_029.server.security.auth.filter.JwtVerificationFilter;
 import seb45_main_029.server.security.auth.handler.*;
@@ -36,7 +37,7 @@ public class SecurityConfiguration {
     private final JwtTokenizer jwtTokenizer;
     private final CustomAuthorityUtils authorityUtils;
     private final OAuth2UserService oAuth2UserService;
-    private final RedisTemplate<String ,String> redisTemplate;
+    private final RedisUtil redisUtil;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -121,12 +122,12 @@ public class SecurityConfiguration {
 
             AuthenticationManager authenticationManager = builder.getSharedObject(AuthenticationManager.class);
 
-            JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager, jwtTokenizer,redisTemplate);
-            jwtAuthenticationFilter.setFilterProcessesUrl("/users/login");   // ⏹️  request URL 체크
+            JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager, jwtTokenizer,redisUtil);
+            jwtAuthenticationFilter.setFilterProcessesUrl("/auth/login");   // ⏹️  request URL 체크
             jwtAuthenticationFilter.setAuthenticationSuccessHandler(new UserAuthenticationSuccessHandler());
             jwtAuthenticationFilter.setAuthenticationFailureHandler(new UserAuthenticationFailureHandler());
 
-            JwtVerificationFilter jwtVerificationFilter = new JwtVerificationFilter(jwtTokenizer, authorityUtils,redisTemplate);
+            JwtVerificationFilter jwtVerificationFilter = new JwtVerificationFilter(jwtTokenizer, authorityUtils,redisUtil);
 
             builder
                     .addFilter(jwtAuthenticationFilter) // Spring Security Filter Chain에 추가

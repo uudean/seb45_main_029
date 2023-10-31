@@ -11,6 +11,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import seb45_main_029.server.redis.common.RedisUtil;
 import seb45_main_029.server.security.auth.dto.UserLoginDto;
 import seb45_main_029.server.security.auth.dto.UserLoginResponseDto;
 import seb45_main_029.server.security.auth.jwt.JwtTokenizer;
@@ -38,7 +39,7 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
 
     // 클라이언트가 성공할 경우 JWT 생성
     private final JwtTokenizer jwtTokenizer;
-    private final RedisTemplate<String,String> redisTemplate;
+    private final RedisUtil redisUtil;
 
     /*
      * 메서드 내부에서 인증을 시도하는 로직 구현
@@ -84,8 +85,8 @@ public class JwtAuthenticationFilter extends UsernamePasswordAuthenticationFilte
         String refreshToken = delegateRefreshToken(user);
 
         //        인증 성공시 redis에 토큰 저장
-        redisTemplate.opsForValue().set("AccessToken : "+user.getEmail(),accessToken,1L,TimeUnit.HOURS);
-        redisTemplate.opsForValue().set("RefreshToken : "+user.getEmail(),refreshToken,14L, TimeUnit.DAYS);
+        redisUtil.set("AccessToken : "+user.getEmail(),accessToken,20L);
+        redisUtil.set("RefreshToken : "+user.getEmail(),refreshToken,10080L);
 
         // header에 AccessToken 전달
         response.setHeader("Authorization", "Bearer " + accessToken);

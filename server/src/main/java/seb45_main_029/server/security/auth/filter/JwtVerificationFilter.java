@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 import seb45_main_029.server.exception.BusinessLogicException;
 import seb45_main_029.server.exception.ExceptionCode;
+import seb45_main_029.server.redis.common.RedisUtil;
 import seb45_main_029.server.security.auth.jwt.JwtTokenizer;
 import seb45_main_029.server.security.auth.utils.CustomAuthorityUtils;
 import seb45_main_029.server.user.entity.User;
@@ -37,7 +38,7 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
 
     private final JwtTokenizer jwtTokenizer;
     private final CustomAuthorityUtils authorityUtils;
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisUtil redisUtil;
 
     @Override
 
@@ -82,7 +83,7 @@ public class JwtVerificationFilter extends OncePerRequestFilter {
 
         Map<String, Object> claims = jwtTokenizer.getClaims(jws, base64EncodedSecretKey).getBody();
         String email = claims.get("username").toString();
-        String accessToken = redisTemplate.opsForValue().get("AccessToken : " + email);
+        String accessToken = redisUtil.get("AccessToken : "+email).toString();
 
 //        redis 에 저장되어있는 액세스토큰과 일치하면 반환
         if (accessToken.equals(jws)) {
