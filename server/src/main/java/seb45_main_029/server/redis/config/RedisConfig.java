@@ -22,6 +22,7 @@ public class RedisConfig {
         return new LettuceConnectionFactory(host, port);
     }
 
+//    RedisTempalte 설정 메서드
     @Bean
     public RedisTemplate<String, Object> redisTemplate() {
         RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();

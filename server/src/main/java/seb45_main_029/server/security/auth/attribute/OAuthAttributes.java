@@ -30,10 +30,4 @@ public class OAuthAttributes {
                 .nameAttributeKey(userNameAttributeName)
                 .build();
     }
-
-
-
-
-
-
 }

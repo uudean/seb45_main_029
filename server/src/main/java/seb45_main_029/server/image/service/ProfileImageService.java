@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-
+@Transactional
 @Service
 public class ProfileImageService {
 
@@ -143,7 +143,6 @@ public class ProfileImageService {
         amazonS3.deleteObject(new DeleteObjectRequest(bucket, fileName));
     }
 //    S3 및 데이터 베이스 이미지 삭제
-    @Transactional
     public void deleteDbImg(long userId) {
 
         String dirName = "profileImg/";

@@ -147,5 +147,4 @@ public class JwtTokenizer {
 
         return key;
     }
-
 }

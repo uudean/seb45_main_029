@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import seb45_main_029.server.myResolution.entity.MyResolution;
 import seb45_main_029.server.myResolution.repository.MyResolutionRepository;
 import seb45_main_029.server.point.entity.Point;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @RequiredArgsConstructor
+@Transactional
 @Service
 public class MyResolutionService {
 
@@ -23,6 +25,7 @@ public class MyResolutionService {
     private final MyResolutionRepository myResolutionRepository;
     private final PointRepository pointRepository;
 
+    //    나의다짐 등록
     public MyResolution post(MyResolution myResolution) {
 
         User loginUser = userService.getLoginUser();
@@ -44,6 +47,8 @@ public class MyResolutionService {
         return myResolutionRepository.save(myResolution);
     }
 
+    // 나의다짐 조회
+    @Transactional(readOnly = true)
     public Page<MyResolution> getMyResolutions(int page, int size) {
 
         long loginUserId = userService.getLoginUser().getUserId();

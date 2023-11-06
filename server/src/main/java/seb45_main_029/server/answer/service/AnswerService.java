@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import seb45_main_029.server.question.entity.Question;
 import seb45_main_029.server.question.repository.QuestionRepository;
 import seb45_main_029.server.question.service.QuestionService;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RequiredArgsConstructor
+@Transactional
 @Service
 public class AnswerService {
 
@@ -57,7 +59,7 @@ public class AnswerService {
             return answerRepository.save(findAnswer);
         } else throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED_USER);
     }
-
+    @Transactional(readOnly = true)
     public Page<Answer> getAnswers(int page, int size, long boardId) {
 
         return answerRepository.getAnswer(PageRequest.of(page, size), boardId);

@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import seb45_main_029.server.exception.BusinessLogicException;
 import seb45_main_029.server.exception.ExceptionCode;
 import seb45_main_029.server.product.entity.Product;
@@ -12,6 +13,7 @@ import seb45_main_029.server.product.repository.ProductRepository;
 import java.util.Optional;
 
 @RequiredArgsConstructor
+@Transactional
 @Service
 public class ProductService {
 
@@ -46,7 +48,7 @@ public class ProductService {
         PageRequest pageRequest = PageRequest.of(page, size);
         return productRepository.findAll(pageRequest);
     }
-
+    @Transactional(readOnly = true)
     public Product findProduct(long productId) {
         Product findProduct = productRepository.findById(productId).orElseThrow(() -> new BusinessLogicException(ExceptionCode.PRODUCT_NOT_FOUND));
         return findProduct;

@@ -5,6 +5,7 @@ import com.amazonaws.services.s3.model.CannedAccessControlList;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -26,23 +27,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+@RequiredArgsConstructor
+@Transactional
 @Service
 public class ProductImageService {
 
     @Autowired
     private AmazonS3 amazonS3;
 
-    private final ProductRepository productRepository;
     private final ImageRepository imageRepository;
     private final ProductService productService;
-    private final ProfileImageService profileImageService;
-
-    public ProductImageService(ProductRepository productRepository, ImageRepository imageRepository, ProductService productService, ProfileImageService profileImageService) {
-        this.productRepository = productRepository;
-        this.imageRepository = imageRepository;
-        this.productService = productService;
-        this.profileImageService = profileImageService;
-    }
 
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
@@ -111,9 +105,6 @@ public class ProductImageService {
         }
 
         for (MultipartFile file : multipartFiles) {
-//            원본 파일명
-//            String originalName = file.getOriginalFilename();
-//            Image findImage = imageRepository.findImageByOriginalName(originalName);
 
             String newFileName = createFileName(file.getOriginalFilename());
             String folder = dirName + newFileName;
@@ -138,17 +129,13 @@ public class ProductImageService {
             image.setImageUrl(bucketUrl);
             image.setProduct(productService.findProduct(productId));
             imageRepository.save(image);
-//          데이터베이스 저장되어있는 정보 수정
-//            findImage.setOriginalName(file.getOriginalFilename());
-//            findImage.setImageName(newFileName);
-//            findImage.setImageUrl(bucketUrl);
-//            imageRepository.save(findImage);
         }
 
         return fileNameList;
     }
 
     //    상품 이미지 조회
+    @Transactional(readOnly = true)
     public List<Image> getImages(long productId) {
 
         List<Image> images = imageRepository.findAllByProductProductId(productId);
@@ -173,6 +160,7 @@ public class ProductImageService {
 
     //    확장자명을 포함한 랜덤한 파일명 생성 -> 원본 파일명을 그대로 업로드 하게되면 파일명이 중복될 시 기존 파일이 대체되기 때문에 중복되지 않는 새로운 이름을 부여
     public String createFileName(String fileName) {
+        String extension = fileName.substring(fileName.lastIndexOf("."));
         return UUID.randomUUID().toString().concat(getFileExtension(fileName));
     }
 

@@ -5,6 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import seb45_main_029.server.question.entity.Question;
 import seb45_main_029.server.question.repository.QuestionRepository;
 import seb45_main_029.server.exception.BusinessLogicException;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 @RequiredArgsConstructor
+@Transactional
 @Service
 public class QuestionService {
 
@@ -47,15 +49,17 @@ public class QuestionService {
 
         } else throw new BusinessLogicException(ExceptionCode.UNAUTHORIZED_USER);
     }
-
+    @Transactional(readOnly = true)
     public Page<Question> getAllQuestions(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("questionId").descending());
         return questionRepository.findAll(pageRequest);
     }
+    @Transactional(readOnly = true)
     public Page<Question> getNotResolvedQuestions(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("questionId").descending());
         return questionRepository.findByStatusIsFalse(pageRequest);
     }
+    @Transactional(readOnly = true)
     public Page<Question> getResolvedQuestions(int page, int size) {
         PageRequest pageRequest = PageRequest.of(page, size, Sort.by("questionId").descending());
         return questionRepository.findByStatusIsTrue(pageRequest);

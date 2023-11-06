@@ -22,4 +22,7 @@ public class MyResolution extends Auditable {
 
     @Column
     private String content;
+
+    @Column
+    private boolean isDeleted;
 }
